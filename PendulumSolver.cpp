@@ -14,7 +14,7 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat);
 void constrain(int &value, int min, int max);
 
 int main(){
-
+std::cout << "hello";
 // Magic numbering it up
 // But really, I'm deciding to break this state space into N increments.
 // We'll see if it's fine enough to reach an optimal solution. 
@@ -43,6 +43,16 @@ for(int j = 0; j < N; j++){
         myfile << state_mat[i][j].value << ",";
     }
     myfile << "\n";
+}    
+
+std::ofstream torquefile;
+torquefile.open ("torque.csv");
+
+for(int j = 0; j < N; j++){
+    for(int i = 0; i < N; i++){
+        torquefile << state_mat[i][j].optimal_torque << ",";
+    }
+    torquefile << "\n";
 }    
 
 }
@@ -106,12 +116,6 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                 int max_value_angle_index = 0;
                 int max_value_angular_velocity_index = 0;
 
-                if(angular_velocity_index_neg_t <= N/2 && angular_velocity_index_pos_t >= N/2){
-                    int sdfsdf = 0;
-                    if(angle_index_neg_t == 0 || angle_index_pos_t == N-1){
-                    sdfsdf = 0;
-                    }
-                }
 
                 for(int k = angle_index_neg_t; k <= angle_index_pos_t; k++){
                     for(int l = angular_velocity_index_neg_t; l <= angular_velocity_index_pos_t; l++){
@@ -128,6 +132,11 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                         // and figure out which of those states is the state with the highest value that we are 
                         // also capable of reaching from our current state.
                         
+                        if(state_mat[k][l].value > 0 && state_mat[k][l].value < 1.15)
+                        {
+                            int sdfsdf = 0;
+                        }
+
                         if (state_mat[k][l].value > max_value){
 
                             double final_angular_velocity = (l * (8/((N-1)/2))) - 8;
@@ -145,7 +154,7 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                             {
                                 inverseStateTransition(angle, angular_velocity, torque, final_angle, final_angular_velocity);
 
-                                if(torque > -1 && torque < 1){
+                                if(torque >= -1 && torque <= 1){
                                     final_torque = torque;
                                     max_value = state_mat[k][l].value;
                                     max_value_angle_index = k;
@@ -186,7 +195,7 @@ void inverseStateTransition(double angle, double angular_velocity, double &torqu
     double friction = 0.3;
     double length = 0.5;
                               
-    torque = (new_angular_velocity - (angular_velocity + 9.81 * sin(angle) * dt)/0.5 + dt * friction * angular_velocity)
+    torque = (new_angular_velocity - (angular_velocity - ((9.81 * sin(angle) * dt)/length) - dt * friction * angular_velocity))
      * length * length/dt;
 
     return;
