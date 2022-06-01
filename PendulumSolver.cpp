@@ -5,8 +5,8 @@
 #include <cmath>
 #include "GridCell.hpp"
 
-#define DT 0.05
-#define N 2000.0
+#define DT 0.01
+#define N 3000.0
 
 void inverseStateTransition(double angle, double angular_velocity, double &torque, double new_angle, double new_angular_velocity);
 void stateTransition(double angle, double angular_velocity, double torque, double &new_angle, double &new_angular_velocity);
@@ -27,10 +27,10 @@ for(int i = 0; i < N; i++){
 }    
 
 // The first index is the angle, the second is the angular velocity.   
-// So state_mat[0][0] is the state at angle = -pi, angular velocity = -8 rad/s. 
-// state_mat[N-1][N-1] is the state at angle = +pi, angular velocity = +8 rad/s.
-state_mat[0][N/2].value = 250;
-state_mat[N-1][N/2].value = 250;
+// So state_mat[0][0] is the state at angle = 0, angular velocity = -8 rad/s. 
+// state_mat[N-1][N-1] is the state at angle = +2pi, angular velocity = +8 rad/s.
+state_mat[N/2][N/2].value = 250;
+//state_mat[N-1][N/2].value = 250;
 
 int x = bellman_update(state_mat);
 
@@ -81,18 +81,18 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
 
                 double torque = 1;
                 
-                old_angle = (i * (M_PI/((N-1)/2))) - M_PI;
+                old_angle = (i * (M_PI/((N-1)/2)));
 
-                old_angular_velocity = (j * (8/((N-1)/2))) - 8;
+                old_angular_velocity = (j * (8.0/((N-1)/2))) - 8;
 
                 stateTransition(old_angle, old_angular_velocity, torque, new_angle, new_angular_velocity);
 
                 // Find the grid cell for the new state
                 // Why ((N-1)/2)? The max output of (new_angle + M_PI) is 2 pi, and multiplying by the 
                 // next term can't give us N (max index is N - 1).
-                int angle_index_pos_t = (new_angle + M_PI) * (((N-1)/2)/M_PI);
+                int angle_index_pos_t = new_angle * (((N-1)/2)/M_PI);
 
-                int angular_velocity_index_pos_t = (new_angular_velocity + 8) * (((N-1)/2)/8);
+                int angular_velocity_index_pos_t = (new_angular_velocity + 8) * (((N-1)/2)/8.0);
             
                 constrain(angle_index_pos_t, 0, N-1);
                 constrain(angular_velocity_index_pos_t, 0, N-1);
@@ -101,9 +101,9 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                 stateTransition(old_angle, old_angular_velocity, torque, new_angle, new_angular_velocity);        
                 
                 // Find the grid cell for the new state
-                int angle_index_neg_t = (new_angle + M_PI) * (((N-1)/2)/M_PI);
+                int angle_index_neg_t = (new_angle) * (((N-1)/2)/M_PI);
 
-                int angular_velocity_index_neg_t = (new_angular_velocity + 8) * (((N-1)/2)/8);
+                int angular_velocity_index_neg_t = (new_angular_velocity + 8) * (((N-1)/2)/8.0);
 
                 if(abs(angle_index_neg_t) < 4 && abs(abs(angular_velocity_index_neg_t) - (N/2)) < 5){
                     int sdfsdf = 0;
@@ -115,7 +115,6 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                 double max_value = 0;
                 int max_value_angle_index = 0;
                 int max_value_angular_velocity_index = 0;
-
 
                 for(int k = angle_index_neg_t; k <= angle_index_pos_t; k++){
                     for(int l = angular_velocity_index_neg_t; l <= angular_velocity_index_pos_t; l++){
@@ -140,10 +139,10 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                         if (state_mat[k][l].value > max_value){
 
                             double final_angular_velocity = (l * (8/((N-1)/2))) - 8;
-                            double final_angle = (k * (M_PI/((N-1)/2))) - M_PI;
+                            double final_angle = (k * (M_PI/((N-1)/2)));
 
                             double angular_velocity = (j * (8/((N-1)/2))) - 8;
-                            double angle = (i * (M_PI/((N-1)/2))) - M_PI;
+                            double angle = (i * (M_PI/((N-1)/2)));
                             
                             // The angle after the state update is not affected by the torque applied at the 
                             // current timestep, so it is simple to see if the candidate angle state* after 
@@ -213,11 +212,11 @@ void stateTransition(double angle, double angular_velocity, double torque, doubl
     new_angle = angle + dt * angular_velocity;
 
     // Angles go from +pi to -pi.
-    if(new_angle > M_PI){
+    if(new_angle > 2*M_PI){
         new_angle = new_angle - 2*M_PI;
     }
 
-    if(new_angle < -M_PI){
+    if(new_angle < 0){
         new_angle = new_angle + 2*M_PI;
     }
 
