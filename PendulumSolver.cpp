@@ -79,6 +79,11 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                 double new_angle;
                 double final_torque;
 
+                if(i == 1500 && j == 1502)
+                {
+                    int sfsf = 1;
+                }
+
                 double torque = 1;
                 
                 old_angle = (i * (M_PI/((N-1)/2)));
@@ -105,10 +110,6 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
 
                 int angular_velocity_index_neg_t = (new_angular_velocity + 8) * (((N-1)/2)/8.0);
 
-                if(abs(angle_index_neg_t) < 4 && abs(abs(angular_velocity_index_neg_t) - (N/2)) < 5){
-                    int sdfsdf = 0;
-                }
-
                 constrain(angle_index_neg_t, 0, N-1);
                 constrain(angular_velocity_index_neg_t, 0, N-1);
 
@@ -126,15 +127,10 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                             continue;
                         }
 
-                        // We know which states we can "reach" from the current state with the minimum and 
+                        // We know which states we can "reach" from the current state (denoted by i and j) with the minimum and 
                         // maximum torque. So, we make a bounding box that is determined by the states we can reach
                         // and figure out which of those states is the state with the highest value that we are 
                         // also capable of reaching from our current state.
-                        
-                        if(state_mat[k][l].value > 0 && state_mat[k][l].value < 1.15)
-                        {
-                            int sdfsdf = 0;
-                        }
 
                         if (state_mat[k][l].value > max_value){
 
@@ -169,7 +165,7 @@ int bellman_update(std::vector<std::vector<GridCell>> &state_mat){
                 // set the value of the current state with a discount factor multiplied by that maximum state.
                 double old_value = state_mat[i][j].value;
                 
-                if(max_value > 0 && max_value_angle_index != i && max_value_angular_velocity_index != j){
+                if(max_value > 0 && max_value * 0.9 > state_mat[i][j].value){
                    
                     state_mat[i][j].value = 0.9 * max_value;
                     state_mat[i][j].optimal_torque = final_torque;
